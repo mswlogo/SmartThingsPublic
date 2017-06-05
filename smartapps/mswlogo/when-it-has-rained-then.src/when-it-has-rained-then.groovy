@@ -25,11 +25,11 @@ definition(
 )
 
 preferences {
-	section("Zip code...")
+	section("Zip code (or pws:STATIONID)...")
     {
 		input "zipcode", "text", title: "Zipcode?"
 	}
-	section("Amount of Rain to close...")
+	section("Amount of Rain to close Valve...")
     {
 		input "threshold", "decimal", title: "Inches of rain?"
 	}
@@ -41,7 +41,7 @@ preferences {
     {
 		input "settime", "time", title: "When?"
 	}
-	section("Open Valve (backup) at...")
+	section("Open Valve (failure state) at...")
     {
 		input "opentime", "time", title: "When?", required: false
 	}
@@ -71,7 +71,6 @@ def reschedule()
 		schedule(opentime, "scheduleOpen")
     }
 	state.YesterdayRainInches = 0.0
-	//runEvery1Hour("scheduleCheck")
 }
 
 def installed()
@@ -146,7 +145,7 @@ def setClose(message)
 
 def scheduleOpen()
 {
-    setOpen("Scheduled Open")	
+    setOpen("Open: Scheduled Safe State")	
 }
 
 def scheduleSet()
