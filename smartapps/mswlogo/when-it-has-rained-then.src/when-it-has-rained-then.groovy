@@ -88,27 +88,33 @@ def updated()
 
 def sendMessage(message)
 {
+	def stamp = new Date().format('hh:mm:ss ', location.timeZone)
   	if (location.contactBookEnabled)
    	{
-    	sendNotificationToContacts(message, recipients)
+    	sendNotificationToContacts(stamp + message, recipients)
    	}
    	else
   	{
-   		sendSms(phone, message)
+   		sendSms(phone, stamp + message)
   	}
+    log.debug "sms: $stamp + $message"
 }
 
-def checkPrecip(currentPrecip)
+def checkPrecip()
 {
 	try
     {    	
-        if (currentPrecip > threshold)
+		def rainInchesToday = getCurrentPrecip()
+        def rainInchesTotal = state.YesterdayRainInches + rainInchesToday
+        def rainInchesTotalText = "(Yesterday: $state.YesterdayRainInches + Today: $rainInchesToday)"
+
+		if (rainInchesTotal > threshold)
         {
-            setClose("Valve: Closed, Rain: $currentPrecip > $threshold")
+            setClose("Valve: Closed, Rain: $rainInchesTotalText > $threshold")
         }
         else
         {
-            setOpen("Valve: Opened, Rain: $currentPrecip < $threshold")
+            setOpen("Valve: Opened, Rain: $rainInchesTotalText < $threshold")
         }
 	} 
 	catch (e)
@@ -152,8 +158,7 @@ def scheduleSet()
 {
 	try
     {    	
-		def rainInches = getCurrentPrecip()
-        checkPrecip(state.YesterdayRainInches + rainInches)
+        checkPrecip()
 	} 
 	catch (e)
 	{
