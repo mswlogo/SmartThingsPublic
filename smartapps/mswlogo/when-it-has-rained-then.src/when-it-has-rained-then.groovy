@@ -29,17 +29,21 @@ preferences {
     {
 		input "zipcode", "text", title: "Zipcode?"
 	}
-	section("Amount of Rain to close Valve...")
+	section("Amount of Current Rain to close Valve...")
     {
-		input "threshold", "decimal", title: "Inches of rain?"
+		input "thresholdCurrent", "decimal", title: "Inches of rain?", required: false
 	}
-	section("Check Precipitation at...")
+	section("Amount of Forecasted Rain to close Valve...")
     {
-		input "checktime", "time", title: "When?"
+		input "thresholdForecast", "decimal", title: "Inches of rain?", required: false
+	}
+	section("Check Current Precipitation at...")
+    {
+		input "checktime", "time", title: "When?", required: false
 	}
 	section("Set Valve based on Precipitation at...")
     {
-		input "settime", "time", title: "When?"
+		input "settime", "time", title: "When?", required: true
 	}
 	section("Open Valve (failure state) at...")
     {
@@ -47,11 +51,7 @@ preferences {
 	}
 	section("Valves to adjust...")
     {
-		input "valves", "capability.valve", required: false, multiple: false
-	}
-	section("Switches to adjust...")
-    {
-		input "switches", "capability.switch", required: false, multiple: false
+		input "valves", "capability.valve", required: true, multiple: true
 	}
 	section("Text me on status to...")
     {
@@ -65,12 +65,31 @@ preferences {
 def reschedule()
 {
 	schedule(settime, "scheduleSet")
-	schedule(checktime, "scheduleCheck")
+    if (checktime)
+    {
+		schedule(checktime, "scheduleCheck")
+    }
     if (opentime)
     {
 		schedule(opentime, "scheduleOpen")
     }
 	state.YesterdayRainInches = 0.0
+
+	if (thresholdCurrent && !checktime)
+    {
+    	sendMessage("Current threshold set with no time to check it")
+    }
+    if (!thresholdCurrent && checktime)
+    {
+    	sendMessage("Check time set with no threshold set")
+    }
+    if (!thresholdCurrent && !thresholdForecast)
+    {
+    	sendMessage("Neither threshold is set")
+    }
+    
+	scheduleCheck()
+    scheduleSetTest()
 }
 
 def installed()
@@ -100,21 +119,55 @@ def sendMessage(message)
     log.debug "sms: $stamp + $message"
 }
 
-def checkPrecip()
+def checkPrecip(active)
 {
 	try
     {    	
-		def rainInchesToday = getCurrentPrecip()
-        def rainInchesTotal = state.YesterdayRainInches + rainInchesToday
-        def rainInchesTotalText = "(Yesterday: $state.YesterdayRainInches + Today: $rainInchesToday)"
+		def rainInchesCurrent = getCurrentPrecip()
+		def rainInchesForecast = getForecastPrecip()
+        def rainInchesText = "Yesterday: $state.YesterdayRainInches, Today: $rainInchesCurrent, Forecast: $rainInchesForecast"
+        
+        rainInchesCurrent = state.YesterdayRainInches + rainInchesCurrent
 
-		if (rainInchesTotal > threshold)
+		if (thresholdCurrent && thresholdForecast)
         {
-            setClose("Valve: Closed, Rain: $rainInchesTotalText > $threshold")
+            def stats = "Rain[$rainInchesText] Threshold: [Current: $thresholdCurrent Forecast: $thresholdForecast]"
+            if ((rainInchesCurrent && (rainInchesCurrent > thresholdCurrent)) || (rainInchesForecast && (rainInchesForecast > thresholdForecast)))
+            {
+                setClose("Valve: Closed, $stats", active)
+            }
+            else
+            {
+                setOpen("Valve: Opened, $stats", active)
+            }
+        }
+        else if (thresholdForecast)
+        {
+            def stats = "Rain[$rainInchesText] Threshold: [Forecast: $thresholdForecast]"
+            if (rainInchesForecast > thresholdForecast)
+            {
+                setClose("Valve: Closed, $stats", active)
+            }
+            else
+            {
+                setOpen("Valve: Opened, $stats", active)
+            }
+        }
+        else if (thresholdCurrent)
+        {
+            def stats = "Rain[$rainInchesText] Threshold: [Current: $thresholdCurrent]"
+            if (rainInchesCurrent > thresholdCurrent)
+            {
+                setClose("Valve: Closed, $stats", active)
+            }
+            else
+            {
+                setOpen("Valve: Opened, $stats", active)
+            }
         }
         else
         {
-            setOpen("Valve: Opened, Rain: $rainInchesTotalText < $threshold")
+        	sendMessage("No threshold Set")
         }
 	} 
 	catch (e)
@@ -123,29 +176,27 @@ def checkPrecip()
 	}
 }
 
-def setOpen(message)
+def setOpen(message, active)
 {
-    sendMessage(message)
-	if (valves)
+    sendMessage("$message Active: $active")
+    if (active)
     {
-		valves.open()
-    }
-    if (switches)
-    {
-	    switches.on()
+        for (valve in valves)
+        {
+            valve.open()
+        }
     }
 }
 
-def setClose(message)
+def setClose(message, active)
 {
-    sendMessage(message)
-	if (valves)
+    sendMessage("$message Active: $active")
+    if (active)
     {
-    	valves.close()
-    }
-    if (switches)
-    {
-	    switches.off()
+        for (valve in valves)
+        {
+            valve.close()
+        }
     }
 }
 
@@ -158,11 +209,23 @@ def scheduleSet()
 {
 	try
     {    	
-        checkPrecip()
+        checkPrecip(true)
 	} 
 	catch (e)
 	{
-        setOpen("Set: Opened, Exception: $e")
+        setOpen("Set: Opened, Exception: $e", true)
+	}
+}
+
+def scheduleSetTest()
+{
+	try
+    {    	
+        checkPrecip(false)
+	} 
+	catch (e)
+	{
+        setOpen("Set: Opened, Exception: $e", false)
 	}
 }
 
@@ -181,7 +244,7 @@ def getCurrentPrecip()
         if (response)
         {
             def rainInches = response?.current_observation?.precip_today_in
-            if (rainInches)
+            if (rainInches != null)
             {
                 if (rainInches == "T")
                 {
@@ -211,4 +274,61 @@ def getCurrentPrecip()
 	{
         sendMessage("Check: Exception $e")
 	}
+    
+    return null
 }
+
+def getForecastPrecip()
+{
+	try
+    {
+        def response = getWeatherFeature("forecast", zipcode)
+        if (response)
+        {
+            def forecast = response?.forecast?.simpleforecast?.forecastday?.first()
+            if (forecast)
+            {
+            	//log.debug "forecastday: $forecast"
+                def rainInches = forecast?.qpf_allday?.in
+            	//log.debug "raininches: $rainInches"
+                //Bug in language "0.00" == false 
+                if (rainInches != null)
+                {
+            	//log.debug "raininches: $rainInches"
+                    if (rainInches == "T")
+                    {
+                        rainInches = "0.01"
+                    }
+
+                    if ("$rainInches".isFloat())
+                    {
+                        return rainInches.toFloat()
+                    }
+                    else
+                    {
+                        sendMessage("Check: Cannot Parse qpf")
+                    }
+                }
+                else
+                {
+                    sendMessage("Check: No qpf_allday Found")
+                }
+            }
+            else
+            {
+            	sendMessage("Check: No Simpleforecast Found")
+            }
+        }
+        else
+        {
+        	sendMessage("Check: No forecast Found")
+        }
+	} 
+	catch (e)
+	{
+        sendMessage("Check: Exception $e")        
+	}
+    
+    return null
+}
+
