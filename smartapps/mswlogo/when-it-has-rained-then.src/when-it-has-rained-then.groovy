@@ -37,15 +37,15 @@ preferences {
     {
 		input "thresholdForecast", "decimal", title: "Inches of rain?", required: false
 	}
-	section("Check Current Precipitation at...")
+	section("Check Current Precipitation at (normally 11:50PM)...")
     {
 		input "checktime", "time", title: "When?", required: false
 	}
-	section("Set Valve based on Precipitation at...")
+	section("Set Valve based on Precipitation at (e.g. 7:50AM just before timers open)...")
     {
 		input "settime", "time", title: "When?", required: true
 	}
-	section("Open Valve (failure state) at...")
+	section("Open Valve (optionally open valve after watering timers) at...")
     {
 		input "opentime", "time", title: "When?", required: false
 	}
