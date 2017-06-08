@@ -37,6 +37,10 @@ preferences {
     {
 		input "thresholdForecast", "decimal", title: "Inches of rain?", required: false
 	}
+	section("Number of days to keep closed (optional)...")
+    {
+		input "daysClosed", "number", title: "Number of days?", required: false
+	}
 	section("Check Current Precipitation at (normally 11:50PM)...")
     {
 		input "checktime", "time", title: "When?", required: false
@@ -45,9 +49,13 @@ preferences {
     {
 		input "settime", "time", title: "When?", required: true
 	}
-	section("Open Valve (optionally open valve after watering timers) at...")
+	section("Open Valve (optional) at...")
     {
 		input "opentime", "time", title: "When?", required: false
+	}
+	section("Close Valve (optional) at...")
+    {
+		input "closetime", "time", title: "When?", required: false
 	}
 	section("Valves to adjust...")
     {
@@ -73,8 +81,11 @@ def reschedule()
     {
 		schedule(opentime, "scheduleOpen")
     }
-	state.YesterdayRainInches = 0.0
-
+    if (closetime)
+    {
+		schedule(closetime, "scheduleClose")
+    }
+    
 	if (thresholdCurrent && !checktime)
     {
     	sendMessage("Current threshold set with no time to check it")
@@ -88,8 +99,28 @@ def reschedule()
     	sendMessage("Neither threshold is set")
     }
     
+	state.YesterdayRainInches = 0.0
+
 	scheduleCheck()
+
+	if (primeCurrent)
+    {
+		state.YesterdayRainInches = primeCurrent
+    }
+    
+    state.daysClosed = 0
+
+    if (daysClosed)
+    {
+    	state.daysClosed = daysClosed
+    }
+    
     scheduleSetTest()
+    
+    if (daysClosed)
+    {
+    	state.daysClosed = daysClosed
+    }
 }
 
 def installed()
@@ -128,6 +159,13 @@ def checkPrecip(active)
         def rainInchesText = "Yesterday: $state.YesterdayRainInches, Today: $rainInchesCurrent, Forecast: $rainInchesForecast"
         
         rainInchesCurrent = state.YesterdayRainInches + rainInchesCurrent
+        
+        if (state.daysClosed > 0)
+        {
+	        state.daysClosed = state.daysClosed - 1
+            setClose("Valve: Closed, $state.daysClosed days closed left", active)
+            return
+        }
 
 		if (thresholdCurrent && thresholdForecast)
         {
@@ -202,7 +240,12 @@ def setClose(message, active)
 
 def scheduleOpen()
 {
-    setOpen("Open: Scheduled Safe State")	
+    setOpen("Open: Scheduled Standby State")	
+}
+
+def scheduleClose()
+{
+    setClose("Close: Scheduled Standby State")	
 }
 
 def scheduleSet()
