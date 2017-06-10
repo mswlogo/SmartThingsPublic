@@ -91,7 +91,7 @@ def reschedule()
     }
     if (set2ndtime)
     {
-    	schedule(set2ndtime, "scheduleSet")	
+    	schedule(set2ndtime, "schedule2ndSet")	
     }
     
 	if (thresholdCurrent && !checktime)
@@ -135,7 +135,8 @@ def installed()
 {
 	log.debug "Installed: $settings"
     unschedule()
-    //reschedule()
+    // Even though update calls this it has to be called here too, why?
+    reschedule()
 }
 
 def uninstalled()
@@ -273,6 +274,11 @@ def scheduleSet()
 	{
         setOpen("Set: Opened, Exception: $e", true)
 	}
+}
+
+def schedule2ndSet()
+{
+    scheduleSet()
 }
 
 def scheduleSetTest()
