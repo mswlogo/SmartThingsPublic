@@ -15,7 +15,7 @@
  *  Author: mswlogo
  */
 definition(
-    name: "When it has Rained Then",
+    name: "When it has Rained Then", // "When It's Going to Rain", //
     namespace: "mswlogo",
     author: "George Mills",
     description: "Will the lawn and plants need to be watered today based on yesterday's rain?",
@@ -126,7 +126,14 @@ def reschedule()
 def installed()
 {
 	log.debug "Installed: $settings"
-    reschedule()
+    unschedule()
+    //reschedule()
+}
+
+def uninstalled()
+{
+	log.debug "Uninstalled: $settings"
+    unschedule()
 }
 
 def updated()
