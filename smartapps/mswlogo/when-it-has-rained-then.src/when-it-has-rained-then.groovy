@@ -45,9 +45,13 @@ preferences {
     {
 		input "checktime", "time", title: "When?", required: false
 	}
-	section("Set Valve based on Precipitation at (e.g. 7:50AM just before timers open)...")
+	section("Set Valve (1st Watering Required) based on Precipitation at (e.g. 7:50AM just before timers open)...")
     {
 		input "settime", "time", title: "When?", required: true
+	}
+	section("Set Valve (2nd Watering Optional) based on Precipitation at (e.g. 3:50PM just before timers open)...")
+    {
+		input "set2ndtime", "time", title: "When?", required: false
 	}
 	section("Open Valve (optional) at...")
     {
@@ -84,6 +88,10 @@ def reschedule()
     if (closetime)
     {
 		schedule(closetime, "scheduleClose")
+    }
+    if (set2ndtime)
+    {
+    	schedule(set2ndtime, "scheduleSet")	
     }
     
 	if (thresholdCurrent && !checktime)
