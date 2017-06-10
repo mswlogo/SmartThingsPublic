@@ -136,7 +136,7 @@ def installed()
 	log.debug "Installed: $settings"
     unschedule()
     // Even though update calls this it has to be called here too, why?
-    reschedule()
+    // reschedule()
 }
 
 def uninstalled()
