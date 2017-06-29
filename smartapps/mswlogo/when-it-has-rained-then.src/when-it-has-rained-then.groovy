@@ -148,6 +148,7 @@ def uninstalled()
 def updated()
 {
 	log.debug "Updated: $settings"
+    
 	unschedule()
     reschedule()
 }
@@ -157,13 +158,13 @@ def sendMessage(message)
 	def stamp = new Date().format('hh:mm:ss ', location.timeZone)
   	if (location.contactBookEnabled)
    	{
-    	sendNotificationToContacts(stamp + message, recipients)
+    	sendNotificationToContacts(stamp + "$app.label " + message, recipients)
    	}
    	else
   	{
-   		sendSms(phone, stamp + message)
+   		sendSms(phone, stamp + "$app.label " + message)
   	}
-    log.debug "sms: $stamp + $message"
+    log.debug "sms: $stamp $app.label $message"
 }
 
 def checkPrecip(active)
@@ -339,7 +340,7 @@ def getCurrentPrecip()
         sendMessage("Check: Exception $e")
 	}
     
-    return null
+    return 0.01
 }
 
 def getForecastPrecip()
@@ -393,6 +394,6 @@ def getForecastPrecip()
         sendMessage("Check: Exception $e")        
 	}
     
-    return null
+    return 0.01
 }
 
