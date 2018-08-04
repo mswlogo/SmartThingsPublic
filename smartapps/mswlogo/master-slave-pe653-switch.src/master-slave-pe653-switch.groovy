@@ -65,7 +65,7 @@ def subscribeToEvents() {
 def eventHandlerOn1(evt) {
 	log.debug "Notify got evt ${evt}"
     if (phone) {
-    	sendSms(phone, "eventHandlerOn1 ${evt}")
+    	sendSms(phone, "eventHandlerOn1")
         }
     multiChannelSwitch.setVSPSpeed1()
     atomicState.active2 = 0
