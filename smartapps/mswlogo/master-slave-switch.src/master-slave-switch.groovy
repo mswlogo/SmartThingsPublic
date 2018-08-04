@@ -49,9 +49,7 @@ def updated() {
 
 def initialize() {
     // initialize counter
-    atomicState.active = true
     }
-
 
 def subscribeToEvents() {
 	subscribe(masterSwitch1, "switch.on", eventHandlerOn1)
