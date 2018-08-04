@@ -12,12 +12,9 @@
  *
  *  Master Slave Switch
  *
- *  Author: mswlogo
- *  Date: 2013-03-20
+ *  Date: 2018-Aug-04
  *
  * Change Log:
- *	1. Todd Wackford
- *	2014-10-03:	Added capability.button device picker and button.pushed event subscription. For Doorbell.
  */
 definition(
 		name: "Master Slave Switch",
