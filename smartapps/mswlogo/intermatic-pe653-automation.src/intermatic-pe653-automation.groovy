@@ -1,0 +1,490 @@
+/**
+ *  Copyright 2018 mswlogo
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License. You may obtain a copy of the License at:
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
+ *  for the specific language governing permissions and limitations under the License.
+ *
+ *  Master Slave Switch and Scheduler
+ *
+ *  Author: mswlogo
+ *  Date: 2018-Aug-04
+ *
+ * Change Log:
+ * 2018-Aug-07 - Added Scheduling for any Circuit or Speed. Made Radio Button Behavior option because it's still buggy. Allow Sync 4 Circuits to be Synced (All optional). 
+ */
+definition(
+		name: "Intermatic PE653 Automation",
+		namespace: "mswlogo",
+		author: "mswlogo",
+		description: "Schedule Speeds, Circuits and Synchronize Circuits Switchs with Speeds (One Way).",
+		category: "Convenience",
+		iconUrl: "https://s3.amazonaws.com/smartapp-icons/Meta/window_contact.png",
+		iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Meta/window_contact@2x.png",
+		pausable: true
+)
+
+preferences {
+	section("Choose PE653 Switch...")
+    {
+		input "multiChannelSwitch", "capability.switch", title: "PE653 Switch", required: true, multiple: false
+        input "phone", "phone", title: "SMS Phone number?", required: false        
+	}
+
+    section("Synchornize Circuit Switches with Speeds")
+    {
+		input "syncCircuit1", "bool", title: "Sync Circuit 1 to Speed 1?", required: true
+		input "syncCircuit2", "bool", title: "Sync Circuit 2 to Speed 2?", required: true
+		input "syncCircuit3", "bool", title: "Sync Circuit 3 to Speed 3?", required: true
+		input "syncCircuit4", "bool", title: "Sync Circuit 4 to Speed 4?", required: true
+
+		input "syncPhone", "bool", title: "Send SMS?", required: true 
+		input "syncRadio", "bool", title: "Enable Radio Buttons?", required: true 
+    }
+    
+    section("Event Schedule 1")
+    {
+        input "setChannel1", "enum", title: "Choose Circuit", required: false,
+            options:[1:"Use Circuit-1",
+                     2:"Use Circuit-2",
+                     3:"Use Circuit-3",
+                     4:"Use Circuit-4",
+                     5:"Use Circuit-5"]
+
+        input "setSpeed1", "enum", title: "Choose Pump Speed", required: false,
+            options:[1:"Use Speed-1",
+                     2:"Use Speed-2",
+                     3:"Use Speed-3",
+                     4:"Use Speed-4"]
+
+		input "setOnTime1", "time", title: "When to turn On?", required: false
+		input "setOffTime1", "time", title: "When to turn Off?", required: false
+        input "setPhone1", "bool", title: "Send SMS?", required: true 
+	}
+    
+    section("Event Schedule 2")
+    {
+        input "setChannel2", "enum", title: "Choose Circuit", required: false,
+            options:[1:"Use Circuit-1",
+                     2:"Use Circuit-2",
+                     3:"Use Circuit-3",
+                     4:"Use Circuit-4",
+                     5:"Use Circuit-5"]
+
+        input "setSpeed2", "enum", title: "Choose Pump Speed", required: false,
+            options:[1:"Use Speed-1",
+                     2:"Use Speed-2",
+                     3:"Use Speed-3",
+                     4:"Use Speed-4"]
+
+		input "setOnTime2", "time", title: "When to turn On?", required: false
+		input "setOffTime2", "time", title: "When to turn Off?", required: false
+        input "setPhone2", "bool", title: "Send SMS?", required: true 
+	}
+
+    section("Event Schedule 3")
+    {
+        input "setChannel3", "enum", title: "Choose Circuit", required: false,
+            options:[1:"Use Circuit-1",
+                     2:"Use Circuit-2",
+                     3:"Use Circuit-3",
+                     4:"Use Circuit-4",
+                     5:"Use Circuit-5"]
+
+        input "setSpeed3", "enum", title: "Choose Pump Speed", required: false,
+            options:[1:"Use Speed-1",
+                     2:"Use Speed-2",
+                     3:"Use Speed-3",
+                     4:"Use Speed-4"]
+
+		input "setOnTime3", "time", title: "When to turn On?", required: false
+		input "setOffTime3", "time", title: "When to turn Off?", required: false
+        input "setPhone3", "bool", title: "Send SMS?", required: true 
+	}
+}
+
+def installed() {
+	log.debug "Installed with settings: ${settings}"
+    unschedule()
+	subscribeToEvents()
+}
+
+def uninstalled()
+{
+	log.debug "Uninstalled: $settings"
+    
+    unschedule()
+	unsubscribe()
+}
+
+def updated() {
+	log.debug "Updated with settings: ${settings}"
+
+    unschedule()
+    reschedule()
+
+	unsubscribe()
+	subscribeToEvents()
+}
+
+def initialize() {
+    // initialize counter
+    sendSms(phone, "Started")
+    }
+
+def reschedule()
+{
+    if (setOnTime1)
+    {
+		schedule(setOnTime1, "scheduleOn1")
+    }
+    
+    if (setOffTime1)
+    {
+		schedule(setOffTime1, "scheduleOff1")
+    }
+
+    if (setOnTime2)
+    {
+		schedule(setOnTime2, "scheduleOn2")
+    }
+    
+    if (setOffTime1)
+    {
+		schedule(setOffTime2, "scheduleOff2")
+    }
+
+    if (setOnTime3)
+    {
+		schedule(setOnTime3, "scheduleOn3")
+    }
+    
+    if (setOffTime3)
+    {
+		schedule(setOffTime3, "scheduleOff3")
+    }
+}    
+
+def subscribeToEvents()
+{
+    if (syncCircuit1)
+    {
+		subscribe(multiChannelSwitch, "switch1.on", eventHandlerOn1)
+		subscribe(multiChannelSwitch, "switch1.off", eventHandlerOff1)
+    }
+
+	if (syncCircuit2)
+    {
+		subscribe(multiChannelSwitch, "switch2.on", eventHandlerOn2)
+		subscribe(multiChannelSwitch, "switch2.off", eventHandlerOff2)
+    }
+
+	if (syncCircuit3)
+    {
+		subscribe(multiChannelSwitch, "switch3.on", eventHandlerOn3)
+		subscribe(multiChannelSwitch, "switch3.off", eventHandlerOff3)
+    }
+
+	if (syncCircuit4)
+    {
+		subscribe(multiChannelSwitch, "switch4.on", eventHandlerOn4)
+		subscribe(multiChannelSwitch, "switch4.off", eventHandlerOff4)
+    }
+}
+
+def subscribeToNullEvents()
+{
+    if (syncCircuit1)
+    {
+		subscribe(multiChannelSwitch, "switch1.off", eventHandlerNullOff1)
+    }
+
+	if (syncCircuit2)
+    {
+		subscribe(multiChannelSwitch, "switch2.off", eventHandlerNullOff2)
+    }
+
+	if (syncCircuit3)
+    {
+		subscribe(multiChannelSwitch, "switch3.off", eventHandlerNullOff3)
+    }
+
+	if (syncCircuit4)
+    {
+		subscribe(multiChannelSwitch, "switch4.off", eventHandlerNullOff4)
+    }
+}
+
+def sendMessage(boolean smsOn, message)
+{
+    if (smsOn)
+    {
+        def stamp = new Date().format('hh:mm:ss ', location.timeZone)
+        if (location.contactBookEnabled)
+        {
+            sendNotificationToContacts(stamp + "$app.label " + message, recipients)
+        }
+        else
+        {
+            if (phone) {
+                sendSms(phone, stamp + "$app.label " + message)
+            }
+        }
+    }
+    log.debug "sms: $stamp $app.label $message"
+}
+
+def setCircuitState(int setChannel, boolean setPhone, boolean stateOn)
+{
+    if (setChannel)
+    {
+ 		switch (setChannel) {
+        case 1:
+            if (stateOn) {
+        		multiChannelSwitch.on1()
+            } else {
+        		multiChannelSwitch.off1()            
+            }
+			break;
+        case 2:
+            if (stateOn) {
+        		multiChannelSwitch.on2()
+            } else {
+        		multiChannelSwitch.off2()            
+            }
+			break;
+        case 3:
+            if (stateOn) {
+        		multiChannelSwitch.on3()
+            } else {
+        		multiChannelSwitch.off3()            
+            }
+			break;
+        case 4:
+            if (stateOn) {
+        		multiChannelSwitch.on4()
+            } else {
+        		multiChannelSwitch.off4()            
+            }
+			break;
+        case 4:
+            if (stateOn) {
+	        	multiChannelSwitch.on5()
+            } else {
+        		multiChannelSwitch.off5()            
+            }
+			break;
+		}
+        
+    	sendMessage(setPhone, "Circuit $setChannel $stateOn")
+    }
+}
+
+def setSpeedState(int setSpeed, boolean setPhone, boolean stateOn)
+{
+    if (setSpeed)
+    {
+    	if (stateOn) {        
+            switch (setSpeed) {
+            case 1:
+                multiChannelSwitch.setVSPSpeed1()
+                break;
+            case 2:
+                multiChannelSwitch.setVSPSpeed2()
+                break;
+            case 3:
+                multiChannelSwitch.setVSPSpeed3()
+                break;
+            case 4:
+                multiChannelSwitch.setVSPSpeed4()
+                break;
+            }
+        } else {
+        	multiChannelSwitch.setVSPSpeed0()
+        }
+                
+    	sendMessage(setPhone, "Speed $setSpeed $stateOn")
+    }
+}
+
+def scheduleOn1()
+{
+    setCircuitState(setChannel1.toInteger(), setPhone1, true)
+    setSpeedState(setSpeed1.toInteger(), setPhone1, true)    
+}
+
+def scheduleOff1()
+{
+    setCircuitState(setChannel1.toInteger(), setPhone1, false)
+    setSpeedState(setSpeed1.toInteger(), setPhone1, false)
+}
+
+def scheduleOn2()
+{
+    setCircuitState(setChannel2.toInteger(), setPhone2, true)
+    setSpeedState(setSpeed2.toInteger(), setPhone2, true)    
+}
+
+def scheduleOff2()
+{
+    setCircuitState(setChannel2.toInteger(), setPhone2, false)
+    setSpeedState(setSpeed2.toInteger(), setPhone2, false)
+}
+
+def scheduleOn3()
+{
+    setCircuitState(setChannel3.toInteger(), setPhone3, true)
+    setSpeedState(setSpeed3.toInteger(), setPhone3, true)    
+}
+
+def scheduleOff3()
+{
+    setCircuitState(setChannel3.toInteger(), setPhone3, false)
+    setSpeedState(setSpeed3.toInteger(), setPhone3, false)
+}
+
+def resetCircuitSwitches(int excludeSwitch)
+{
+    def boolean needToTurnOffSwitch = false
+        
+    if (!syncRadio)
+    {
+    	return
+    }
+
+	if (syncCircuit1 && (excludeSwitch != 1) && (multiChannelSwitch.currentValue("switch1") == "on"))
+    {
+    	needToTurnOffSwitch = true
+    }
+	if (syncCircuit2 && (excludeSwitch != 2) && (multiChannelSwitch.currentValue("switch2") == "on"))
+    {
+    	needToTurnOffSwitch = true
+    }
+	if (syncCircuit3 && (excludeSwitch != 3) && (multiChannelSwitch.currentValue("switch3") == "on"))
+    {
+    	needToTurnOffSwitch = true
+    }
+	if (syncCircuit4 && (excludeSwitch != 4) && (multiChannelSwitch.currentValue("switch4") == "on"))
+    {
+    	needToTurnOffSwitch = true
+    }
+
+    if (needToTurnOffSwitch)
+    {
+        // Resubscribe to Handler that will NOT set a Speed
+        unsubscribe()
+        subscribeToNullEvents()
+
+        // Turn Off all other Active Circuits swithes Except the Excluded one (the one that should remain On)
+
+        if (syncCircuit1 && (excludeSwitch != 1) && (multiChannelSwitch.currentValue("switch1") == "on"))
+        {
+            multiChannelSwitch.off1()
+            return
+        }
+        if (syncCircuit2 && (excludeSwitch != 2) && (multiChannelSwitch.currentValue("switch2") == "on"))
+        {
+            multiChannelSwitch.off2()
+            return
+        }
+        if (syncCircuit3 && (excludeSwitch != 3) && (multiChannelSwitch.currentValue("switch3") == "on"))
+        {
+            multiChannelSwitch.off3()
+            return
+        }
+        if (syncCircuit4 && (excludeSwitch != 4) && (multiChannelSwitch.currentValue("switch4") == "on"))
+        {
+            multiChannelSwitch.off4()
+            return
+        }
+	}
+}
+
+def eventHandlerOn1(evt) 
+{
+    multiChannelSwitch.setVSPSpeed1()
+    resetCircuitSwitches(1)
+    sendMessage(syncPhone, "Sync Speed 1")
+}
+
+def eventHandlerOn2(evt)
+{
+    multiChannelSwitch.setVSPSpeed2()
+    resetCircuitSwitches(2)
+    sendMessage(syncPhone, "Sync Speed 2")
+}
+
+def eventHandlerOn3(evt)
+{
+    multiChannelSwitch.setVSPSpeed3()
+    sendMessage(syncPhone, "Sync Speed 3")
+    resetCircuitSwitches(3)
+}
+
+def eventHandlerOn4(evt)
+{
+    multiChannelSwitch.setVSPSpeed4()
+    resetCircuitSwitches(4)
+    sendMessage(syncPhone, "Sync Speed 4")
+}
+
+def eventHandlerOff1(evt) 
+{
+    multiChannelSwitch.setVSPSpeed0()
+    sendMessage(syncPhone, "Sync Speed 1 Off")
+}
+
+def eventHandlerOff2(evt) 
+{
+    multiChannelSwitch.setVSPSpeed0()
+    sendMessage(syncPhone, "Sync Speed 2 Off")
+}
+
+def eventHandlerOff3(evt) 
+{
+    multiChannelSwitch.setVSPSpeed0()
+    sendMessage(syncPhone, "Sync Speed 3 Off")
+}
+
+def eventHandlerOff4(evt) 
+{
+    multiChannelSwitch.setVSPSpeed0()
+    sendMessage(syncPhone, "Sync Speed 4 Off")
+}
+
+def eventHandlerNullOff1(evt) 
+{
+    sendMessage(syncPhone, "Button Sync 1 Done")
+
+	unsubscribe()
+	subscribeToEvents()
+}
+
+def eventHandlerNullOff2(evt) 
+{
+    sendMessage(syncPhone, "Button Sync 2 Done")
+
+	unsubscribe()
+	subscribeToEvents()
+}
+
+def eventHandlerNullOff3(evt) 
+{
+    sendMessage(syncPhone, "Button Sync 3 Done")
+
+	unsubscribe()
+	subscribeToEvents()
+}
+
+def eventHandlerNullOff4(evt) 
+{
+    sendMessage(syncPhone, "Button Sync 4 Done")
+
+	unsubscribe()
+	subscribeToEvents()
+}
