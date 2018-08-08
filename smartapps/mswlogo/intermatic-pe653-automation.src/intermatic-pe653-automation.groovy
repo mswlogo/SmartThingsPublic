@@ -707,4 +707,3 @@ def eventHandlerSpeedOff4(evt)
 {
     sendMessage(smsSpeed4, "Speed 4 Off")
 }
-
