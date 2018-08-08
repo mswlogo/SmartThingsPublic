@@ -16,7 +16,8 @@
  *  Date: 2018-Aug-04
  *
  * Change Log:
- * 2018-Aug-07 - Added Scheduling for any Circuit or Speed. Made Radio Button Behavior option because it's still buggy. Allow Sync 4 Circuits to be Synced (All optional). 
+ * 2018-Aug-07 - Added Scheduling for any Circuit or Speed. Made Radio Button Behavior option because it's still buggy. Allow all 4 Circuits to be Synced (All optional).
+ * 2018-Aug-07 - Added SMS Monitoring On Any Circuit or Speed (triggered by any event)
  */
 definition(
 		name: "Intermatic PE653 Automation",
@@ -43,8 +44,20 @@ preferences {
 		input "syncCircuit3", "bool", title: "Sync Circuit 3 to Speed 3?", required: true
 		input "syncCircuit4", "bool", title: "Sync Circuit 4 to Speed 4?", required: true
 
-		input "syncPhone", "bool", title: "Send SMS?", required: true 
 		input "syncRadio", "bool", title: "Enable Radio Buttons?", required: true 
+    }
+    
+    section("SMS message on Change")
+    {
+		input "smsCircuit1", "bool", title: "SMS Circuit 1 change?", required: true
+		input "smsCircuit2", "bool", title: "SMS Circuit 2 change?", required: true
+		input "smsCircuit3", "bool", title: "SMS Circuit 3 change?", required: true
+		input "smsCircuit4", "bool", title: "SMS Circuit 4 change?", required: true
+		input "smsCircuit5", "bool", title: "SMS Circuit 5 change?", required: true
+		input "smsSpeed1", "bool", title: "SMS Speed 1 change?", required: true
+		input "smsSpeed2", "bool", title: "SMS Speed 2 change?", required: true
+		input "smsSpeed3", "bool", title: "SMS Speed 3 change?", required: true
+		input "smsSpeed4", "bool", title: "SMS Speed 4 change?", required: true
     }
     
     section("Event Schedule 1")
@@ -170,53 +183,144 @@ def reschedule()
     }
 }    
 
-def subscribeToEvents()
+def subscribeToOnEvents()
 {
-    if (syncCircuit1)
+    if (syncCircuit1 || smsCircuit1)
     {
 		subscribe(multiChannelSwitch, "switch1.on", eventHandlerOn1)
+    }
+
+	if (syncCircuit2 || smsCircuit2)
+    {
+		subscribe(multiChannelSwitch, "switch2.on", eventHandlerOn2)
+    }
+
+	if (syncCircuit3 || smsCircuit3)
+    {
+		subscribe(multiChannelSwitch, "switch3.on", eventHandlerOn3)
+    }
+
+	if (syncCircuit4 || smsCircuit4)
+    {
+		subscribe(multiChannelSwitch, "switch4.on", eventHandlerOn4)
+    }
+
+	if (smsCircuit5)
+    {
+		subscribe(multiChannelSwitch, "switch5.on", eventHandlerOn5)
+    }
+
+	if (smsSpeed1)
+    {
+		subscribe(multiChannelSwitch, "swVSP1.on", eventHandlerSpeedOn1)
+    }
+    
+	if (smsSpeed2)
+    {
+		subscribe(multiChannelSwitch, "swVSP2.on", eventHandlerSpeedOn2)
+    }
+
+	if (smsSpeed3)
+    {
+		subscribe(multiChannelSwitch, "swVSP3.on", eventHandlerSpeedOn3)
+    }
+
+	if (smsSpeed4)
+    {
+		subscribe(multiChannelSwitch, "swVSP4.on", eventHandlerSpeedOn4)
+    }
+}
+
+def subscribeToSyncOffEvents()
+{
+	if (syncCircuit1 || smsCircuit1)
+    {
 		subscribe(multiChannelSwitch, "switch1.off", eventHandlerOff1)
     }
 
-	if (syncCircuit2)
+	if (syncCircuit2 || smsCircuit2)
     {
-		subscribe(multiChannelSwitch, "switch2.on", eventHandlerOn2)
 		subscribe(multiChannelSwitch, "switch2.off", eventHandlerOff2)
     }
 
-	if (syncCircuit3)
+	if (syncCircuit3 || smsCircuit3)
     {
-		subscribe(multiChannelSwitch, "switch3.on", eventHandlerOn3)
 		subscribe(multiChannelSwitch, "switch3.off", eventHandlerOff3)
     }
 
-	if (syncCircuit4)
+	if (syncCircuit4 || smsCircuit4)
     {
-		subscribe(multiChannelSwitch, "switch4.on", eventHandlerOn4)
 		subscribe(multiChannelSwitch, "switch4.off", eventHandlerOff4)
     }
+
+	if (smsCircuit5)
+    {
+		subscribe(multiChannelSwitch, "switch5.off", eventHandlerOff5)
+    }
+}
+
+def subscribeToOffEvents()
+{
+	if (smsSpeed1)
+    {
+		subscribe(multiChannelSwitch, "swVSP1.off", eventHandlerSpeedOff1)
+    }
+    
+	if (smsSpeed2)
+    {
+		subscribe(multiChannelSwitch, "swVSP2.off", eventHandlerSpeedOff2)
+    }
+
+	if (smsSpeed3)
+    {
+		subscribe(multiChannelSwitch, "swVSP3.off", eventHandlerSpeedOff3)
+    }
+
+	if (smsSpeed4)
+    {
+		subscribe(multiChannelSwitch, "swVSP4.off", eventHandlerSpeedOff4)
+    }
+}
+
+def subscribeToEvents()
+{
+	subscribeToOnEvents()
+	subscribeToSyncOffEvents()
+	subscribeToOffEvents()
+}
+
+def subscribeToNoSyncEvents()
+{
+	subscribeToOnEvents()
+	subscribeToNullEvents()
+	subscribeToOffEvents()
 }
 
 def subscribeToNullEvents()
 {
-    if (syncCircuit1)
+	if (syncCircuit1 || smsCircuit1)
     {
 		subscribe(multiChannelSwitch, "switch1.off", eventHandlerNullOff1)
     }
 
-	if (syncCircuit2)
+	if (syncCircuit2 || smsCircuit2)
     {
 		subscribe(multiChannelSwitch, "switch2.off", eventHandlerNullOff2)
     }
 
-	if (syncCircuit3)
+	if (syncCircuit3 || smsCircuit3)
     {
 		subscribe(multiChannelSwitch, "switch3.off", eventHandlerNullOff3)
     }
 
-	if (syncCircuit4)
+	if (syncCircuit4 || smsCircuit4)
     {
 		subscribe(multiChannelSwitch, "switch4.off", eventHandlerNullOff4)
+    }
+
+	if (smsCircuit5)
+    {
+		subscribe(multiChannelSwitch, "switch5.off", eventHandlerNullOff5)
     }
 }
 
@@ -378,7 +482,7 @@ def resetCircuitSwitches(int excludeSwitch)
     {
         // Resubscribe to Handler that will NOT set a Speed
         unsubscribe()
-        subscribeToNullEvents()
+		subscribeToNoSyncEvents()
 
         // Turn Off all other Active Circuits swithes Except the Excluded one (the one that should remain On)
 
@@ -407,84 +511,200 @@ def resetCircuitSwitches(int excludeSwitch)
 
 def eventHandlerOn1(evt) 
 {
-    multiChannelSwitch.setVSPSpeed1()
-    resetCircuitSwitches(1)
-    sendMessage(syncPhone, "Sync Speed 1")
+    if (syncCircuit1)
+    {
+    	multiChannelSwitch.setVSPSpeed1()
+    	resetCircuitSwitches(1)
+	    sendMessage(smsCircuit1, "Circuit 1 On - Speed 1")
+    }
+    else
+    {
+	    sendMessage(smsCircuit1, "Circuit 1 On - No Sync")
+    }
 }
 
 def eventHandlerOn2(evt)
 {
-    multiChannelSwitch.setVSPSpeed2()
-    resetCircuitSwitches(2)
-    sendMessage(syncPhone, "Sync Speed 2")
+    if (syncCircuit2)
+    {
+    	multiChannelSwitch.setVSPSpeed2()
+    	resetCircuitSwitches(2)
+	    sendMessage(smsCircuit1, "Circuit 2 On - Speed 2")
+    }
+    else
+    {
+	    sendMessage(smsCircuit1, "Circuit 2 On - No Sync")
+    }
 }
 
 def eventHandlerOn3(evt)
 {
-    multiChannelSwitch.setVSPSpeed3()
-    sendMessage(syncPhone, "Sync Speed 3")
-    resetCircuitSwitches(3)
+    if (syncCircuit3)
+    {
+	    multiChannelSwitch.setVSPSpeed3()
+    	resetCircuitSwitches(3)
+	    sendMessage(smsCircuit1, "Circuit 3 On - Speed 3")
+    }
+    else
+    {
+	    sendMessage(smsCircuit1, "Circuit 3 On - No Sync")
+    }
 }
 
 def eventHandlerOn4(evt)
 {
-    multiChannelSwitch.setVSPSpeed4()
-    resetCircuitSwitches(4)
-    sendMessage(syncPhone, "Sync Speed 4")
+    if (syncCircuit4)
+    {
+    	multiChannelSwitch.setVSPSpeed4()
+    	resetCircuitSwitches(4)
+	    sendMessage(smsCircuit1, "Circuit 4 On - Speed 4")
+    }
+    else
+    {
+	    sendMessage(smsCircuit1, "Circuit 4 On - No Sync")
+    }
 }
+
+def eventHandlerOn5(evt)
+{
+    sendMessage(smsCircuit5, "Circuit 5 On")
+}
+
+// All Speed Off Handlers are the same (SmartThings not Happy if I mapped Multipl Switches to the Same Handler
 
 def eventHandlerOff1(evt) 
 {
-    multiChannelSwitch.setVSPSpeed0()
-    sendMessage(syncPhone, "Sync Speed 1 Off")
+    if (syncCircuit1)
+    {
+    	multiChannelSwitch.setVSPSpeed0()
+    	sendMessage(smsCircuit1, "Circuit 1 Off - Speed 0")
+    }
+    else
+    {
+    	sendMessage(smsCircuit1, "Circuit 1 Off - No Sync")
+    }
 }
 
 def eventHandlerOff2(evt) 
 {
-    multiChannelSwitch.setVSPSpeed0()
-    sendMessage(syncPhone, "Sync Speed 2 Off")
+    if (syncCircuit1)
+    {
+    	multiChannelSwitch.setVSPSpeed0()
+    	sendMessage(smsCircuit2, "Circuit 2 Off - Speed 0")
+    }
+    else
+    {
+    	sendMessage(smsCircuit1, "Circuit 2 Off - No Sync")
+    }
 }
 
 def eventHandlerOff3(evt) 
 {
-    multiChannelSwitch.setVSPSpeed0()
-    sendMessage(syncPhone, "Sync Speed 3 Off")
+    if (syncCircuit3)
+    {
+    	multiChannelSwitch.setVSPSpeed0()
+    	sendMessage(smsCircuit3, "Circuit 3 Off - Speed 0")
+    }
+    else
+    {
+    	sendMessage(smsCircuit1, "Circuit 3 Off - No Sync")
+    }
 }
 
 def eventHandlerOff4(evt) 
 {
-    multiChannelSwitch.setVSPSpeed0()
-    sendMessage(syncPhone, "Sync Speed 4 Off")
+    if (syncCircuit4)
+    {
+    	multiChannelSwitch.setVSPSpeed0()
+    	sendMessage(smsCircuit4, "Circuit 4 Off - Speed 0")
+    }
+    else
+    {
+    	sendMessage(smsCircuit1, "Circuit 4 Off - No Sync")
+    }
 }
+
+def eventHandlerOff5(evt) 
+{
+    sendMessage(smsCircuit5, "Circuit 5 Off - Speed NA")
+}
+
+// Dummy Handlers that don't take action and put Event Handlers back to Normal
 
 def eventHandlerNullOff1(evt) 
 {
-    sendMessage(syncPhone, "Button Sync 1 Done")
-
 	unsubscribe()
 	subscribeToEvents()
+
+	sendMessage(smsCircuit1, "Circuit 1 Off - Radio Sync")
 }
 
 def eventHandlerNullOff2(evt) 
 {
-    sendMessage(syncPhone, "Button Sync 2 Done")
-
 	unsubscribe()
 	subscribeToEvents()
+
+	sendMessage(smsCircuit2, "Circuit 2 Off - Radio Sync")
 }
 
 def eventHandlerNullOff3(evt) 
 {
-    sendMessage(syncPhone, "Button Sync 3 Done")
-
 	unsubscribe()
 	subscribeToEvents()
+
+    sendMessage(smsCircuit3, "Circuit 3 Off - Radio Sync")
 }
 
 def eventHandlerNullOff4(evt) 
 {
-    sendMessage(syncPhone, "Button Sync 4 Done")
-
 	unsubscribe()
 	subscribeToEvents()
+    
+    sendMessage(smsCircuit4, "Circuit 4 Off - Radio Sync")
 }
+
+def eventHandlerNullOff5(evt) 
+{
+    sendMessage(smsCircuit5, "Circuit 5 Off - Radio NA")
+}
+
+def eventHandlerSpeedOn1(evt) 
+{
+    sendMessage(smsSpeed1, "Speed 1 On")
+}
+
+def eventHandlerSpeedOn2(evt) 
+{
+    sendMessage(smsSpeed2, "Speed 2 On")
+}
+
+def eventHandlerSpeedOn3(evt) 
+{
+    sendMessage(smsSpeed3, "Speed 3 On")
+}
+
+def eventHandlerSpeedOn4(evt) 
+{
+    sendMessage(smsSpeed4, "Speed 4 On")
+}
+
+def eventHandlerSpeedOff1(evt) 
+{
+    sendMessage(smsSpeed1, "Speed 1 Off")
+}
+
+def eventHandlerSpeedOff2(evt) 
+{
+    sendMessage(smsSpeed2, "Speed 2 Off")
+}
+
+def eventHandlerSpeedOff3(evt) 
+{
+    sendMessage(smsSpeed3, "Speed 3 Off")
+}
+
+def eventHandlerSpeedOff4(evt) 
+{
+    sendMessage(smsSpeed4, "Speed 4 Off")
+}
+
