@@ -53,8 +53,8 @@ definition(
 		author: "mswlogo",
 		description: "Schedule Speeds, Circuits and Synchronize Circuits Switchs with Speeds (One Way).",
 		category: "Convenience",
-		iconUrl: "https://s3.amazonaws.com/smartapp-icons/Meta/window_contact.png",
-		iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Meta/window_contact@2x.png",
+		iconUrl: "https://s3.amazonaws.com/smartapp-icons/MiscHacking/remote.png",
+		iconX2Url: "https://s3.amazonaws.com/smartapp-icons/MiscHacking/remote@2x.png",
 		pausable: true
 )
 
