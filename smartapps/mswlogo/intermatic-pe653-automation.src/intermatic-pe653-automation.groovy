@@ -12,12 +12,40 @@
  *
  *  Master Slave Switch and Scheduler
  *
+ *  To Make SmartApp Available:
+ *
+ *  1) Copy this code to ClipBoard
+ *  2) Login into SMartThings IDE
+ *  3) Click My SmartApps
+ *  4) Click New SmartApp
+ *  5) Click From Code
+ *  6) Paste ClipBoard (this code)
+ *  7) Click Save
+ *  8) Click Publish -> For Me
+ *
+ *  To Install in SmartThings and Configure:
+ *
+ *  1) On your Phone Start SmartThings App
+ *  2) Click Automation at the Bottom
+ *  3) Click SMartApps at the Top
+ *  4) Click Add a SmartApp
+ *  5) Scroll to the bottom and Click My Apps
+ *  6) Click Intermatic PE653 Automatic
+ *  7) It will Jump right into Configure
+ *  8) Click PE653 Switch
+ *  9) Find your PE653 Device Handler (don't select one of the PE653 Switches)
+ *  10) Set SMS Phone number (optional and won't be used unless enabled per channel below)
+ *  11) Choose Channel and Speeds you'd like to Monitor through SMS Messages (all optional)
+ *  12) Choose Which PE653 Circuit Button to Sync to VSP Speeds (it basically turns your PE653 into another Remote Control for Variable Speed Pumps)
+ *  13) Choose Circuits and Speeds to Schedule Turn On or Off times with optional SMS Message when that event fires (be careful with pumping ACID or Chlorine in Pool or anything super critical).
+ *
  *  Author: mswlogo
  *  Date: 2018-Aug-04
  *
  * Change Log:
  * 2018-Aug-07 - Added Scheduling for any Circuit or Speed. Made Radio Button Behavior option because it's still buggy. Allow all 4 Circuits to be Synced (All optional).
  * 2018-Aug-07 - Added SMS Monitoring On Any Circuit or Speed (triggered by any event)
+ * 2018-Aug-08 - Added Install Instructions, no functional change
  */
 definition(
 		name: "Intermatic PE653 Automation",
