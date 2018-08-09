@@ -46,7 +46,7 @@
  * Version 1.0 - 2018-Aug-07 - Added Scheduling for any Circuit or Speed. Made Radio Button Behavior option because it's still buggy. Allow all 4 Circuits to be Synced (All optional).
  * Version 1.1 - 2018-Aug-07 - Added SMS Monitoring On Any Circuit or Speed (triggered by any event)
  * Version 1.2 - 2018-Aug-08 - Added Install Instructions, no functional change
- * Version 1.3 - 2018-Aug-08 - Added Version and ICons
+ * Version 1.3 - 2018-Aug-09 - Added Version and ICons
  */
 definition(
 		name: "Intermatic PE653 Automation",
