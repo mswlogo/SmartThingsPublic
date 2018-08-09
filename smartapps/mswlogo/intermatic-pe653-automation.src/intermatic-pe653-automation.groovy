@@ -43,9 +43,10 @@
  *  Date: 2018-Aug-04
  *
  * Change Log:
- * 2018-Aug-07 - Added Scheduling for any Circuit or Speed. Made Radio Button Behavior option because it's still buggy. Allow all 4 Circuits to be Synced (All optional).
- * 2018-Aug-07 - Added SMS Monitoring On Any Circuit or Speed (triggered by any event)
- * 2018-Aug-08 - Added Install Instructions, no functional change
+ * Version 1.0 - 2018-Aug-07 - Added Scheduling for any Circuit or Speed. Made Radio Button Behavior option because it's still buggy. Allow all 4 Circuits to be Synced (All optional).
+ * Version 1.1 - 2018-Aug-07 - Added SMS Monitoring On Any Circuit or Speed (triggered by any event)
+ * Version 1.2 - 2018-Aug-08 - Added Install Instructions, no functional change
+ * Version 1.3 - 2018-Aug-08 - Added Version and ICons
  */
 definition(
 		name: "Intermatic PE653 Automation",
@@ -55,11 +56,12 @@ definition(
 		category: "Convenience",
 		iconUrl: "https://s3.amazonaws.com/smartapp-icons/MiscHacking/remote.png",
 		iconX2Url: "https://s3.amazonaws.com/smartapp-icons/MiscHacking/remote@2x.png",
+		iconX3Url: "https://s3.amazonaws.com/smartapp-icons/MiscHacking/remote@2x.png",
 		pausable: true
 )
 
 preferences {
-	section("Choose PE653 Switch...")
+	section("V1.3 Choose PE653 Switch...")
     {
 		input "multiChannelSwitch", "capability.switch", title: "PE653 Switch", required: true, multiple: false
         input "phone", "phone", title: "SMS Phone number?", required: false        
