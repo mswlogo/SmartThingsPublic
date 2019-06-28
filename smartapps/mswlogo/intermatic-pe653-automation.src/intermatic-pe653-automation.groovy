@@ -47,6 +47,7 @@
  * Version 1.1 - 2018-Aug-07 - Added SMS Monitoring On Any Circuit or Speed (triggered by any event)
  * Version 1.2 - 2018-Aug-08 - Added Install Instructions, no functional change
  * Version 1.3 - 2018-Aug-09 - Added Version and ICons
+ * Version 1.4 - 2019-Jun-27 - All changes Releated to Scheduling, Fixed Bugs, Added 4th Schedule, Allow Seperate Speed When Circuit Off vs On, Allow Speed 0 (Off).
  */
 definition(
 		name: "Intermatic PE653 Automation",
@@ -99,13 +100,21 @@ preferences {
                      4:"Use Circuit-4",
                      5:"Use Circuit-5"]
 
-        input "setSpeed1", "enum", title: "Choose Pump Speed", required: false,
-            options:[1:"Use Speed-1",
+        input "setSpeedOn1", "enum", title: "Choose Pump Speed at On", required: false,
+            options:[0:"Use Speed-0",
+            		 1:"Use Speed-1",
                      2:"Use Speed-2",
                      3:"Use Speed-3",
                      4:"Use Speed-4"]
 
-		input "setOnTime1", "time", title: "When to turn On?", required: false
+        input "setSpeedOff1", "enum", title: "Choose Pump Speed at Off", required: false,
+            options:[0:"Use Speed-0",
+            		 1:"Use Speed-1",
+                     2:"Use Speed-2",
+                     3:"Use Speed-3",
+                     4:"Use Speed-4"]
+
+input "setOnTime1", "time", title: "When to turn On?", required: false
 		input "setOffTime1", "time", title: "When to turn Off?", required: false
         input "setPhone1", "bool", title: "Send SMS?", required: true 
 	}
@@ -119,8 +128,16 @@ preferences {
                      4:"Use Circuit-4",
                      5:"Use Circuit-5"]
 
-        input "setSpeed2", "enum", title: "Choose Pump Speed", required: false,
-            options:[1:"Use Speed-1",
+        input "setSpeedOn2", "enum", title: "Choose Pump Speed at On", required: false,
+            options:[0:"Use Speed-0",
+            		 1:"Use Speed-1",
+                     2:"Use Speed-2",
+                     3:"Use Speed-3",
+                     4:"Use Speed-4"]
+
+        input "setSpeedOff2", "enum", title: "Choose Pump Speed at Off", required: false,
+            options:[0:"Use Speed-0",
+            		 1:"Use Speed-1",
                      2:"Use Speed-2",
                      3:"Use Speed-3",
                      4:"Use Speed-4"]
@@ -139,8 +156,16 @@ preferences {
                      4:"Use Circuit-4",
                      5:"Use Circuit-5"]
 
-        input "setSpeed3", "enum", title: "Choose Pump Speed", required: false,
-            options:[1:"Use Speed-1",
+        input "setSpeedOn3", "enum", title: "Choose Pump Speed at On", required: false,
+            options:[0:"Use Speed-0",
+            		 1:"Use Speed-1",
+                     2:"Use Speed-2",
+                     3:"Use Speed-3",
+                     4:"Use Speed-4"]
+
+        input "setSpeedOff3", "enum", title: "Choose Pump Speed at Off", required: false,
+            options:[0:"Use Speed-0",
+            		 1:"Use Speed-1",
                      2:"Use Speed-2",
                      3:"Use Speed-3",
                      4:"Use Speed-4"]
@@ -148,6 +173,34 @@ preferences {
 		input "setOnTime3", "time", title: "When to turn On?", required: false
 		input "setOffTime3", "time", title: "When to turn Off?", required: false
         input "setPhone3", "bool", title: "Send SMS?", required: true 
+	}
+
+	section("Event Schedule 4")
+    {
+        input "setChannel4", "enum", title: "Choose Circuit", required: false,
+            options:[1:"Use Circuit-1",
+                     2:"Use Circuit-2",
+                     3:"Use Circuit-3",
+                     4:"Use Circuit-4",
+                     5:"Use Circuit-5"]
+
+        input "setSpeedOn4", "enum", title: "Choose Pump Speed at On", required: false,
+            options:[0:"Use Speed-0",
+            		 1:"Use Speed-1",
+                     2:"Use Speed-2",
+                     3:"Use Speed-3",
+                     4:"Use Speed-4"]
+
+        input "setSpeedOff4", "enum", title: "Choose Pump Speed at Off", required: false,
+            options:[0:"Use Speed-0",
+            		 1:"Use Speed-1",
+                     2:"Use Speed-2",
+                     3:"Use Speed-3",
+                     4:"Use Speed-4"]
+
+		input "setOnTime4", "time", title: "When to turn On?", required: false
+		input "setOffTime4", "time", title: "When to turn Off?", required: false
+        input "setPhone4", "bool", title: "Send SMS?", required: true 
 	}
 }
 
@@ -191,13 +244,13 @@ def reschedule()
     {
 		schedule(setOffTime1, "scheduleOff1")
     }
-
+    
     if (setOnTime2)
     {
 		schedule(setOnTime2, "scheduleOn2")
     }
     
-    if (setOffTime1)
+    if (setOffTime2)
     {
 		schedule(setOffTime2, "scheduleOff2")
     }
@@ -210,6 +263,16 @@ def reschedule()
     if (setOffTime3)
     {
 		schedule(setOffTime3, "scheduleOff3")
+    }
+
+	if (setOnTime4)
+    {
+		schedule(setOnTime4, "scheduleOn4")
+    }
+    
+    if (setOffTime4)
+    {
+		schedule(setOffTime4, "scheduleOff4")
     }
 }    
 
@@ -373,11 +436,11 @@ def sendMessage(boolean smsOn, message)
     log.debug "sms: $stamp $app.label $message"
 }
 
-def setCircuitState(int setChannel, boolean setPhone, boolean stateOn)
+def setCircuitState(setChannel, boolean setPhone, boolean stateOn)
 {
     if (setChannel)
     {
- 		switch (setChannel) {
+ 		switch (setChannel.toInteger()) {
         case 1:
             if (stateOn) {
         		multiChannelSwitch.on1()
@@ -419,27 +482,26 @@ def setCircuitState(int setChannel, boolean setPhone, boolean stateOn)
     }
 }
 
-def setSpeedState(int setSpeed, boolean setPhone, boolean stateOn)
+def setSpeedState(setSpeed, boolean setPhone, boolean stateOn)
 {
     if (setSpeed)
     {
-    	if (stateOn) {        
-            switch (setSpeed) {
-            case 1:
-                multiChannelSwitch.setVSPSpeed1()
-                break;
-            case 2:
-                multiChannelSwitch.setVSPSpeed2()
-                break;
-            case 3:
-                multiChannelSwitch.setVSPSpeed3()
-                break;
-            case 4:
-                multiChannelSwitch.setVSPSpeed4()
-                break;
-            }
-        } else {
-        	multiChannelSwitch.setVSPSpeed0()
+        switch (setSpeed.toInteger()) {
+        case 0:
+            multiChannelSwitch.setVSPSpeed0()
+            break;
+        case 1:
+            multiChannelSwitch.setVSPSpeed1()
+            break;
+        case 2:
+            multiChannelSwitch.setVSPSpeed2()
+            break;
+        case 3:
+            multiChannelSwitch.setVSPSpeed3()
+            break;
+        case 4:
+            multiChannelSwitch.setVSPSpeed4()
+            break;
         }
                 
     	sendMessage(setPhone, "Speed $setSpeed $stateOn")
@@ -448,38 +510,44 @@ def setSpeedState(int setSpeed, boolean setPhone, boolean stateOn)
 
 def scheduleOn1()
 {
-    setCircuitState(setChannel1.toInteger(), setPhone1, true)
-    setSpeedState(setSpeed1.toInteger(), setPhone1, true)    
+    setCircuitState(setChannel1, setPhone1, true)
+    setSpeedState(setSpeedOn1, setPhone1, true)    
 }
 
 def scheduleOff1()
 {
-    setCircuitState(setChannel1.toInteger(), setPhone1, false)
-    setSpeedState(setSpeed1.toInteger(), setPhone1, false)
+    setCircuitState(setChannel1, setPhone1, false)
+    setSpeedState(setSpeedOff1, setPhone1, false)
 }
 
 def scheduleOn2()
 {
-    setCircuitState(setChannel2.toInteger(), setPhone2, true)
-    setSpeedState(setSpeed2.toInteger(), setPhone2, true)    
+    setCircuitState(setChannel2, setPhone2, true)
+    setSpeedState(setSpeedOn2, setPhone2, true)    
 }
 
 def scheduleOff2()
 {
-    setCircuitState(setChannel2.toInteger(), setPhone2, false)
-    setSpeedState(setSpeed2.toInteger(), setPhone2, false)
+    setCircuitState(setChannel2, setPhone2, false)
+    setSpeedState(setSpeedOff2, setPhone2, false)
 }
 
 def scheduleOn3()
 {
-    setCircuitState(setChannel3.toInteger(), setPhone3, true)
-    setSpeedState(setSpeed3.toInteger(), setPhone3, true)    
+    setCircuitState(setChannel3, setPhone3, true)
+    setSpeedState(setSpeedOn3, setPhone3, true)    
 }
 
 def scheduleOff3()
 {
-    setCircuitState(setChannel3.toInteger(), setPhone3, false)
-    setSpeedState(setSpeed3.toInteger(), setPhone3, false)
+    setCircuitState(setChannel3, setPhone3, false)
+    setSpeedState(setSpeedOff3, setPhone3, false)
+}
+
+def scheduleOff4()
+{
+    setCircuitState(setChannel4, setPhone4, false)
+    setSpeedState(setSpeedOff4, setPhone4, false)
 }
 
 def resetCircuitSwitches(int excludeSwitch)
