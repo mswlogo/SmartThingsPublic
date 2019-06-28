@@ -41,6 +41,7 @@
  *
  *  Author: mswlogo
  *  Date: 2018-Aug-04
+ *  Location: https://github.com/mswlogo/SmartThingsPublic/blob/master/smartapps/mswlogo/intermatic-pe653-automation.src/intermatic-pe653-automation.groovy
  *
  * Change Log:
  * Version 1.0 - 2018-Aug-07 - Added Scheduling for any Circuit or Speed. Made Radio Button Behavior option because it's still buggy. Allow all 4 Circuits to be Synced (All optional).
