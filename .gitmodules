@@ -1,0 +1,3 @@
+[submodule "intermatic"]
+	path = intermatic
+	url = https://github.com/mswlogo/Intermatic-PE653.git
